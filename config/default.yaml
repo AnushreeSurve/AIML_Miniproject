@@ -1,0 +1,38 @@
+# Equipoise default configuration. Every tunable number lives here or in
+# costs.yaml / synthetic.yaml and is loaded through src/equipoise/config.py.
+project: equipoise
+seed: 42
+
+paths:                                # relative to the repository root
+  raw_dir: "data/raw/Data Tables - Text files"
+  analysis_csv: data/protocolT_analysis.csv
+  visits_csv: data/protocolT_visits.csv
+  synthetic_dir: data/synthetic
+  splits_json: data/splits.json
+  models_dir: models
+  figures_dir: reports/figures
+  tables_dir: reports/tables
+  logs_dir: logs
+
+split:
+  test_fraction: 0.2                  # fixed held-out test set, touched only for final reporting
+  n_folds: 5                          # CV / cross-fitting folds inside the training 80%
+  stratify_by: treatment
+
+analysis:
+  primary_outcome: Y_va_change_wk52
+  arms: [Aflibercept, Bevacizumab, Ranibizumab]
+  reference_arm: Bevacizumab          # cheapest; effects are reported as arm - Bevacizumab
+  mcid_letters: 5                     # equipoise threshold (one ETDRS chart line)
+  responder_threshold_letters: 15     # "gained >= 15 letters" classification target
+  bootstrap_reps: 200
+
+trial:                                # facts the real data must match (checked by schema.py)
+  n_patients: 660
+  arm_sizes: {Aflibercept: 224, Bevacizumab: 218, Ranibizumab: 218}
+  n_missing_wk52: 44
+  va_below_69_cutoff: 68              # X_va_below_69 = 1  <=>  X_va_letters <= 68 (20/50 or worse)
+
+tracking:
+  mlflow_tracking_uri: mlruns         # local file store, relative to the repository root
+  experiment_prefix: equipoise

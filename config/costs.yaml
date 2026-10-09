@@ -1,0 +1,22 @@
+# Drug and laser prices used by the decision layer (M8).
+# Prices are NEVER invented by the code. While any value below is null, the
+# pipeline falls back to an explicit --prices override or to the DEMO set,
+# and every output / app page shows a visible "demo prices" warning.
+currency: INR
+
+prices:
+  price_per_injection_inr:
+    Aflibercept: null   # TEAM: fill with current Indian prices and cite the source
+    Bevacizumab: null   # TEAM: fill with current Indian prices and cite the source
+    Ranibizumab: null   # TEAM: fill with current Indian prices and cite the source
+  laser_session_inr: null   # TEAM: fill with current Indian prices and cite the source
+  source: null              # TEAM: citation(s) for the numbers above
+
+demo:
+  label: DEMO
+  units: relative units (not rupees)
+  price_per_injection:      # placeholder ordering only: cheapest = 1
+    Aflibercept: 10
+    Bevacizumab: 1
+    Ranibizumab: 5
+  laser_session: 2          # placeholder, relative units

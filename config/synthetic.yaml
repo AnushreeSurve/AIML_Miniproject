@@ -1,0 +1,138 @@
+# Parameters for scripts/make_synthetic_data.py.
+# The synthetic tables are FAKE patients with the same schema as the real
+# Protocol T tables. They power tests and CI; never report them as results.
+# Marginal shapes are chosen to look plausible (ranges similar to the trial),
+# not to reproduce any real patient.
+n_patients: 660
+seed: 42
+arm_probs: {Aflibercept: 0.34, Bevacizumab: 0.33, Ranibizumab: 0.33}
+
+# ---------------------------------------------------------------- baseline X
+baseline:
+  age: {mean: 60, sd: 10, min: 24, max: 87}
+  female_p: 0.47
+  hispanic_p: 0.16
+  race_probs:
+    White: 0.80
+    Black/African American: 0.16
+    Asian: 0.012
+    More than one race: 0.012
+    Native Hawaiian/Other Pacific Islander: 0.008
+    American Indian/Alaskan Native: 0.008
+  diabetes_type_probs: {Type 2: 0.905, Type 1: 0.075, Uncertain: 0.02}
+  diabetes_duration_gamma: {shape: 2.6, scale: 6.4, max: 62}
+  insulin_p: {Type 1: 0.96, Type 2: 0.66, Uncertain: 0.77}
+  hba1c_lognormal: {mean_log: 2.07, sd_log: 0.2, min: 4.9, max: 15.0}
+  bmi: {mean: 33.7, sd: 7.8, min: 18.0, max: 68.0}
+  sbp: {mean: 139, sd: 20, min: 78, max: 180}
+  dbp_given_sbp: {intercept: 40.0, slope: 0.31, sd: 9.5, min: 49, max: 110}
+  smoker_current_p: 0.07
+  hypertension_p: 0.81
+  prior_mi_p: 0.065
+  cad_p: 0.13
+  prior_stroke_p: 0.047
+  renal_disease_p: 0.12
+  log_uacr: {mean: 4.7, sd: 2.2, min: 0.88, max: 9.8}
+  # baseline vision: 24 + 54 * Beta(a, b), rounded (eligibility 24-78 letters)
+  va_letters_beta: {a: 2.43, b: 0.79, low: 24, width: 54}
+  fellow_va_letters: {mean: 70, sd: 20, min: 0, max: 98}
+  oct_machine_probs: {Zeiss Cirrus: 0.49, Heidelberg Spectralis: 0.47, Zeiss Stratus: 0.04}
+  # CST: latent Stratus-scale thickness (log-normal) + machine offset (um)
+  cst_latent_lognormal: {mean_log: 5.95, sd_log: 0.26}
+  cst_machine_offset_um: {Zeiss Stratus: 0, Zeiss Cirrus: 45, Heidelberg Spectralis: 70}
+  cst_um_range: {min: 248, max: 978}
+  subretinal_fluid_p: 0.31
+  epiretinal_membrane_p: 0.62
+  iop: {mean: 15.4, sd: 3.2, min: 6, max: 29}
+  pseudophakic_p: 0.24
+  dr_severity_clinical_probs:
+    Mild/moderate NPDR: 0.51
+    Severe NPDR: 0.26
+    PDR and/or prior scatter: 0.20
+    Microaneurysms only: 0.03
+  # reading-centre ordinal level (1-10): centre per clinical category, +/- noise
+  dr_severity_rc_centre:
+    Microaneurysms only: 3
+    Mild/moderate NPDR: 4
+    Severe NPDR: 5
+    PDR and/or prior scatter: 7
+  dr_severity_rc_sd: 1.0
+  prior_dme_trt_p: 0.41
+  prior_focal_laser_given_trt_p: 0.89
+  prior_antivegf_given_trt_p: 0.31
+  prior_prp_p: 0.16
+
+# Missing-completely-at-random rates for nullable baseline columns.
+missing_rates:
+  X_bmi: 0.094
+  X_cst_um: 0.014
+  X_dr_severity_clinical: 0.003
+  X_dr_severity_rc: 0.015
+  X_epiretinal_membrane: 0.0015
+  X_hba1c: 0.009
+  X_log_uacr: 0.039
+  X_oct_machine: 0.0015
+  X_race: 0.036
+  X_subretinal_fluid: 0.0015
+
+# ---------------------------------------------------------------- outcomes
+# Week-52 vision change (letters):
+#   Y = base_gain + va_slope * (va_centre - va) + cst_slope * (cst_z)
+#       + tau_arm(X) + noise
+# PLANTED, KNOWN treatment effect (relative to Bevacizumab):
+#   tau_Aflibercept(X) = afl_main + afl_extra_if_va_below_69 * X_va_below_69
+#   tau_Ranibizumab(X) = ran_main + ran_extra_if_va_below_69 * X_va_below_69
+# The noiseless quantities are written to data/synthetic/protocolT_truth.csv.
+outcome_wk52:
+  base_gain: 8.5
+  va_centre: 65
+  va_slope: 0.3
+  cst_slope: 1.5          # letters per SD of baseline CST (thicker -> more gain)
+  afl_main: 1.0
+  afl_extra_if_va_below_69: 7.0
+  ran_main: 1.0
+  ran_extra_if_va_below_69: 2.5
+  noise_sd: 9.0
+outcome_wk104:
+  drift_mean: 0.3         # change from week 52 to week 104
+  drift_sd: 6.0
+cst_change:
+  frac_of_excess: 0.68    # fraction of (baseline CST - normal_cst) resolved by week 52
+  normal_cst_um: 280
+  arm_extra_um: {Aflibercept: -40, Bevacizumab: 25, Ranibizumab: -15}
+  noise_sd: 70
+  wk104_extra_mean: -10
+  wk104_extra_sd: 40
+  extra_missing_p: 0.02   # OCT missing at week 52 although vision measured
+
+# ---------------------------------------------------------------- follow-up
+followup:
+  drop_pre_outcome_p: 0.064    # leave before week 52 (no week-52 or week-104 outcome)
+  drop_post_outcome_p: 0.08    # leave between week 52 and week 104
+  missed_wk52_visit_p: 0.003   # completer who missed the week-52 visit
+  missed_wk104_visit_p: 0.003
+  visit_jitter_days: 7
+  year1_visit_weeks: [0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52]
+  year2_interval_weeks: [4, 8, 12, 16]
+  year2_interval_probs: [0.5, 0.25, 0.15, 0.10]
+  year2_end_week: 104
+  oct_measured_p: 0.85         # OCT done at a non-outcome follow-up visit
+  trajectory_tau_weeks: 10     # vision approaches its week-52 change with this time constant
+  va_visit_noise_sd: 4.0
+  cst_visit_noise_sd: 30.0
+
+injections:
+  year1_mean: {Aflibercept: 8.9, Bevacizumab: 9.4, Ranibizumab: 9.2}
+  year1_sd: 2.2
+  loading_doses: 4             # first visits that are always injected
+  year2_inject_p: {Aflibercept: 0.45, Bevacizumab: 0.5, Ranibizumab: 0.48}
+
+laser:
+  first_allowed_week: 24
+  year1_p: {Aflibercept: 0.36, Bevacizumab: 0.55, Ranibizumab: 0.45}
+  year2_new_p: {Aflibercept: 0.07, Bevacizumab: 0.15, Ranibizumab: 0.10}
+
+final_status_labels:
+  completed: Completed
+  drop_pre: DropPreOutcome
+  drop_post: DropPostOutcome

@@ -1,0 +1,34 @@
+# ---- Data: DRCR terms forbid redistribution. Only synthetic data is committed.
+data/*
+!data/synthetic/
+!data/synthetic/**
+
+# ---- Generated artefacts
+models/*
+!models/.gitkeep
+mlruns/
+mlflow.db
+logs/
+*.joblib
+
+# ---- Credentials
+kaggle.json
+.kaggle/
+.env
+
+# ---- Python / tooling
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.ipynb_checkpoints
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db
