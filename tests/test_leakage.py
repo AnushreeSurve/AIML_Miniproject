@@ -7,7 +7,10 @@ from equipoise.data.features import (
     LeakageError,
     assert_no_leakage,
     baseline_features,
+    load_builders,
 )
+
+load_builders()
 
 
 @pytest.mark.parametrize("name", sorted(BASELINE_FEATURE_BUILDERS))

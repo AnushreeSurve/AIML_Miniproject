@@ -7,7 +7,7 @@ successfully, so ``all`` is always runnable.
 
 from __future__ import annotations
 
-from collections.abc import Callable
+import importlib
 from dataclasses import dataclass
 
 import typer
@@ -28,12 +28,24 @@ class Stage:
     module: str
     phase: int
     help: str
-    run: Callable[[bool], None] | None = None
+    run: str | None = None  # "package.module:function", imported lazily
 
 
 STAGES: tuple[Stage, ...] = (
-    Stage("preprocess", "m1-preprocess", 2, "M1: missing data, harmonization, outliers, encoding"),
-    Stage("stats", "m2-stats", 2, "M2: Table 1, trial replication, hypothesis tests"),
+    Stage(
+        "preprocess",
+        "m1-preprocess",
+        2,
+        "M1: missing data, harmonization, outliers, encoding",
+        "equipoise.preprocess.stage:run",
+    ),
+    Stage(
+        "stats",
+        "m2-stats",
+        2,
+        "M2: Table 1, trial replication, hypothesis tests",
+        "equipoise.stats.stage:run",
+    ),
     Stage("represent", "m3-represent", 3, "M3: PCA/SVD, clustering, association rules"),
     Stage("supervised", "m5-supervised", 3, "M5: regression, classification, count models"),
     Stage("search", "m4-search", 4, "M4: feature selection and search arena"),
@@ -52,7 +64,8 @@ def _run_stage(stage: Stage, synthetic: bool) -> None:
     if stage.run is None:
         typer.echo(f"[{stage.name}] not implemented yet (Phase {stage.phase}).")
         return
-    stage.run(synthetic)
+    module, func = stage.run.split(":")
+    getattr(importlib.import_module(module), func)(synthetic)
 
 
 def _register(stage: Stage) -> None:

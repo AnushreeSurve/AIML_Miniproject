@@ -8,6 +8,7 @@ paths:                                # relative to the repository root
   analysis_csv: data/protocolT_analysis.csv
   visits_csv: data/protocolT_visits.csv
   synthetic_dir: data/synthetic
+  synthetic_reports_dir: reports/synthetic   # --synthetic runs never overwrite real outputs
   splits_json: data/splits.json
   models_dir: models
   figures_dir: reports/figures
@@ -42,6 +43,63 @@ visits:                               # visit table (scripts/build_protocolT_vis
   oct_match_window_days: 14           # an OCT grading attaches to the nearest visit within +/- 14 d
   event_match_window_days: 3          # an injection / laser attaches to the nearest visit within +/- 3 d
   crosscheck_tolerance_letters: 0.5   # visit-derived vs analysis-table week-52 change
+
+features:                             # baseline feature groups used by build_preprocessor
+  continuous: [X_age, X_bmi, X_sbp, X_dbp, X_diabetes_duration_yrs, X_hba1c, X_log_uacr,
+               X_va_letters, X_fellow_va_letters, X_iop, X_dr_severity_rc]
+  log_transform: [X_hba1c]            # skewed lab (skewness ~1.0); X_log_uacr is already logged
+  binary: [X_female, X_hispanic, X_insulin, X_smoker_current, X_hypertension, X_prior_mi, X_cad,
+           X_prior_stroke, X_renal_disease, X_subretinal_fluid, X_epiretinal_membrane,
+           X_pseudophakic, X_prior_dme_trt, X_prior_antivegf, X_prior_focal_laser, X_prior_prp,
+           X_va_below_69]
+  nominal: [X_race, X_diabetes_type, X_oct_machine]
+  ordinal:
+    X_dr_severity_clinical: [Microaneurysms only, Mild/moderate NPDR, Severe NPDR,
+                             PDR and/or prior scatter]
+  cst: {value: X_cst_um, machine: X_oct_machine}
+
+preprocess:
+  imputer: knn                        # knn | median | iterative (numeric columns, fitted on train only)
+  knn_neighbors: 5
+  sparse_threshold: 0.0               # 0 -> dense output; one-hot block alone is available as scipy.sparse
+  cst_min_machine_n: 20               # machines with fewer training eyes use pooled mean/SD
+  missing:
+    n_imputations: 20                 # MICE imputations pooled with Rubin's rules
+    mice_max_iter: 10
+    knn_neighbors: 5
+    impute_within_arm: true           # keeps arm x covariate interactions in the imputation model
+  outliers:
+    iqr_k: 1.5
+    isolation_contamination: 0.05
+    dbscan_min_samples: 10
+    dbscan_eps_quantile: 0.95         # eps = this quantile of the k-distance curve
+  bands:
+    X_hba1c: {edges: [0, 7.0, 8.0, 9.0, 100], labels: ["<7", "7-8", "8-9", ">=9"]}
+    X_va_letters: {edges: [0, 54, 68, 100], labels: ["<=54 (20/80 or worse)", "55-68 (20/63-20/50)", ">=69 (20/40 or better)"]}
+    X_age: {edges: [0, 50, 60, 70, 120], labels: ["<50", "50-59", "60-69", ">=70"]}
+    X_cst_um_harm: {edges: [-100, -0.5, 0.5, 100], labels: ["thin (z<-0.5)", "typical", "thick (z>0.5)"]}
+
+stats:
+  alpha: 0.05
+  skew_threshold: 1.0                 # Table 1: |skew| above this -> median [IQR] and Kruskal-Wallis
+  # Denominators that reproduce README 9.1: vision means use all observed values;
+  # year-1 laser / injections use patients with a week-52 visit, 2-year ones a week-104 visit.
+  yr1_population: M_has_wk52
+  yr2_population: M_has_wk104
+  regression_covariates: [X_cst_um_harm, X_age, X_hba1c, X_prior_antivegf, X_insulin]
+  correlation_features: [X_age, X_bmi, X_sbp, X_dbp, X_diabetes_duration_yrs, X_hba1c, X_log_uacr,
+                         X_va_letters, X_fellow_va_letters, X_iop, X_dr_severity_rc, X_cst_um]
+  replication_tolerance_letters: 0.2
+  replication_targets:                # README 9.1 "Our table" (complete cases)
+    mean_gain_wk52: {Aflibercept: 13.3, Bevacizumab: 9.4, Ranibizumab: 11.2}
+    mean_gain_wk52_va_below_69: {Aflibercept: 19.1, Bevacizumab: 11.8, Ranibizumab: 14.2}
+    mean_gain_wk52_va_69_plus: {Aflibercept: 7.8, Bevacizumab: 7.0, Ranibizumab: 8.3}
+    median_inj_yr1: {Aflibercept: 9, Bevacizumab: 10, Ranibizumab: 10}
+    laser_yr1_pct: {Aflibercept: 37, Bevacizumab: 56, Ranibizumab: 47}
+    cst_change_wk52: {Aflibercept: -165, Bevacizumab: -98, Ranibizumab: -147}
+    mean_gain_wk104: {Aflibercept: 12.9, Bevacizumab: 9.6, Ranibizumab: 12.2}
+    median_inj_total: {Aflibercept: 15, Bevacizumab: 16, Ranibizumab: 15}
+    laser_any_pct: {Aflibercept: 41, Bevacizumab: 64, Ranibizumab: 52}
 
 tracking:
   mlflow_tracking_uri: mlruns         # local file store, relative to the repository root

@@ -42,7 +42,7 @@ def test_cli_lists_all_stages():
         assert s in res.output
 
 
-def test_cli_all_and_validate_on_synthetic():
+def test_cli_all_and_validate_on_synthetic(fast_config):
     runner = CliRunner()
     assert runner.invoke(app, ["all", "--synthetic"]).exit_code == 0
     res = runner.invoke(app, ["validate", "--synthetic"])

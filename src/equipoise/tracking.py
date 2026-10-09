@@ -14,6 +14,7 @@ import os
 import subprocess
 from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -149,11 +150,25 @@ def log_metrics(metrics: Mapping[str, float], step: int | None = None) -> None:
     mlflow.log_metrics(clean, step=step)
 
 
+def report_dir(kind: str, synthetic: bool = False, cfg: dict[str, Any] | None = None) -> Path:
+    """``reports/<kind>`` for real data, ``reports/synthetic/<kind>`` for synthetic runs."""
+    cfg = cfg or load_config()
+    if synthetic:
+        return resolve_path(cfg["paths"]["synthetic_reports_dir"]) / kind
+    return get_path(f"{kind}_dir", cfg)
+
+
 def save_figure(
-    fig: Figure, module: str, name: str, *, log: bool = True, cfg: dict[str, Any] | None = None
+    fig: Figure,
+    module: str,
+    name: str,
+    *,
+    log: bool = True,
+    synthetic: bool = False,
+    cfg: dict[str, Any] | None = None,
 ) -> Path:
     """Save ``reports/figures/<module>_<name>.png`` and attach it to the active run."""
-    out = get_path("figures_dir", cfg) / f"{module}_{name}.png"
+    out = report_dir("figures", synthetic, cfg) / f"{module}_{name}.png"
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=150, bbox_inches="tight")
     if log and mlflow.active_run():
@@ -168,10 +183,11 @@ def save_table(
     *,
     log: bool = True,
     index: bool = False,
+    synthetic: bool = False,
     cfg: dict[str, Any] | None = None,
 ) -> tuple[Path, Path]:
     """Save ``reports/tables/<module>_<name>.csv`` and ``.md`` and attach both to the run."""
-    base = get_path("tables_dir", cfg) / f"{module}_{name}"
+    base = report_dir("tables", synthetic, cfg) / f"{module}_{name}"
     base.parent.mkdir(parents=True, exist_ok=True)
     csv_path, md_path = base.with_suffix(".csv"), base.with_suffix(".md")
     df.to_csv(csv_path, index=index)
@@ -180,3 +196,38 @@ def save_table(
         mlflow.log_artifact(str(csv_path), artifact_path="tables")
         mlflow.log_artifact(str(md_path), artifact_path="tables")
     return csv_path, md_path
+
+
+@dataclass
+class Reporter:
+    """Per-stage writer for figures and tables (real vs synthetic output folders).
+
+    Figures from synthetic runs get a "[SYNTHETIC DATA]" title suffix so they
+    can never be mistaken for trial results.
+    """
+
+    module: str
+    synthetic: bool
+    cfg: dict[str, Any]
+    written: list[Path] = field(default_factory=list)
+
+    def title(self, text: str) -> str:
+        """Figure title, marked when the data are synthetic."""
+        return f"{text} [SYNTHETIC DATA]" if self.synthetic else text
+
+    def table(self, df: pd.DataFrame, name: str, *, index: bool = False) -> Path:
+        """Write ``<module>_<name>.csv/.md`` and log both."""
+        csv, md = save_table(
+            df, self.module, name, index=index, synthetic=self.synthetic, cfg=self.cfg
+        )
+        self.written += [csv, md]
+        return csv
+
+    def figure(self, fig: Figure, name: str) -> Path:
+        """Write ``<module>_<name>.png``, log it and close the figure."""
+        import matplotlib.pyplot as plt
+
+        out = save_figure(fig, self.module, name, synthetic=self.synthetic, cfg=self.cfg)
+        plt.close(fig)
+        self.written.append(out)
+        return out

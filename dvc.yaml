@@ -54,3 +54,45 @@ stages:
           - split
     outs:
       - data/splits.json
+
+  preprocess:
+    cmd: python -m equipoise preprocess
+    deps:
+      - src/equipoise/preprocess
+      - src/equipoise/pipeline.py
+      - data/protocolT_analysis.csv
+      - data/splits.json
+    params:
+      - config/default.yaml:
+          - seed
+          - features
+          - preprocess
+    outs:
+      - data/derived/m1_outlier_flags.csv
+      - reports/tables/m1_missing_strategies.csv:
+          cache: false
+    plots:
+      - reports/figures/m1_missing_strategies.png:
+          cache: false
+      - reports/figures/m1_cst_by_machine.png:
+          cache: false
+
+  stats:
+    cmd: python -m equipoise stats
+    deps:
+      - src/equipoise/stats
+      - src/equipoise/preprocess/harmonize.py
+      - data/protocolT_analysis.csv
+      - data/splits.json
+    params:
+      - config/default.yaml:
+          - seed
+          - stats
+          - features
+    outs:
+      - reports/tables/m2_table1.csv:
+          cache: false
+      - reports/tables/m2_replication_check.csv:
+          cache: false
+      - reports/tables/m2_interaction_tests.csv:
+          cache: false

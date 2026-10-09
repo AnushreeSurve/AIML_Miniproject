@@ -74,3 +74,17 @@ college AIML mini-project and a **research prototype, not for clinical use**.
 - Then switch to the commented `build_analysis` / `build_visits` stages in `dvc.yaml`.
 - `data/splits.json` (real) and `data/synthetic/splits.json` hold the fixed test split and CV folds (`python -m equipoise split [--synthetic]`). Load them with `equipoise.data.splits.load_splits`. Never redraw splits ad hoc.
 - `scripts/build_protocolT_visits.py` reads raw column names only from `config/raw_tables.yaml`, which must be filled by inspecting the files. Study eye comes from the M0 table's `study_eye`.
+
+## Stage conventions (from Phase 2)
+
+- **Stage set-up.** A stage is `src/equipoise/<pkg>/stage.py:run(synthetic)`, registered in `cli.STAGES`. It starts with `pipeline.prepare(synthetic)`, which gives the config, the validated table and the fixed split.
+- **Writing outputs.** Write through `tracking.Reporter`.
+  - Real runs go to `reports/{figures,tables}/`, synthetic runs to `reports/synthetic/`.
+  - Synthetic figure titles carry "[SYNTHETIC DATA]".
+  - Generated reports are gitignored; patient-level derived files go to `data/derived*/`.
+- **Feature matrices.** `preprocess.encode.build_preprocessor(cfg)` is the single `ColumnTransformer` placed at the front of every model `Pipeline`. New feature builders go into `data.features.BUILDER_MODULES`.
+- **Trial-level inference.** M1's missing-data comparison and M2's tests use all 660 patients, as in the published analysis. They are never used to select or tune models.
+- **Replication targets** (README 9.1) are in `stats.replication_targets`, with these denominators:
+  - year-1 laser and injections: patients with a week-52 visit;
+  - 2-year outcomes: patients with a week-104 visit.
+- **Slow steps in tests.** Use the `fast_config` fixture, which sets small MICE settings and points outputs at `tmp_path`.

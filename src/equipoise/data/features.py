@@ -23,6 +23,8 @@ FEATURE_PREFIX = "X_"
 
 #: name -> callable(df) returning a feature matrix (DataFrame or ndarray with names).
 BASELINE_FEATURE_BUILDERS: dict[str, Callable[[pd.DataFrame], pd.DataFrame]] = {}
+#: Modules that register builders; add each new one here so the leakage test sees it.
+BUILDER_MODULES: tuple[str, ...] = ("equipoise.preprocess.encode",)
 
 
 class LeakageError(AssertionError):
@@ -75,3 +77,12 @@ def baseline_features(df: pd.DataFrame, *, with_treatment: bool = False) -> pd.D
     out = df[cols]
     assert_no_leakage(out.columns, allow_treatment=with_treatment)
     return out
+
+
+def load_builders() -> dict[str, Callable[[pd.DataFrame], pd.DataFrame]]:
+    """Import every module in ``BUILDER_MODULES`` and return the full registry."""
+    import importlib
+
+    for mod in BUILDER_MODULES:
+        importlib.import_module(mod)
+    return BASELINE_FEATURE_BUILDERS

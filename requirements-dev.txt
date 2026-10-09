@@ -157,6 +157,8 @@ flufl-lock==9.2.0
     # via dvc
 fonttools==4.66.1
     # via matplotlib
+formulaic==1.2.2
+    # via statsmodels
 frozenlist==1.8.0
     # via
     #   aiohttp
@@ -213,6 +215,8 @@ importlib-metadata==9.0.1
     # via mlflow-skinny
 iniconfig==2.3.1
     # via pytest
+interface-meta==2.0.1
+    # via formulaic
 iterative-telemetry==0.0.10
     # via dvc
 itsdangerous==2.2.0
@@ -255,7 +259,9 @@ multidict==6.9.1
     #   aiohttp
     #   yarl
 narwhals==2.26.0
-    # via scikit-learn
+    # via
+    #   formulaic
+    #   scikit-learn
 networkx==3.6.1 ; python_full_version < '3.12'
     # via dvc
 networkx==3.7 ; python_full_version >= '3.12'
@@ -264,22 +270,28 @@ numpy==2.4.6 ; python_full_version < '3.12'
     # via
     #   equipoise (pyproject.toml)
     #   contourpy
+    #   formulaic
     #   matplotlib
     #   mlflow
     #   pandas
+    #   patsy
     #   scikit-learn
     #   scipy
     #   skops
+    #   statsmodels
 numpy==2.5.3 ; python_full_version >= '3.12'
     # via
     #   equipoise (pyproject.toml)
     #   contourpy
+    #   formulaic
     #   matplotlib
     #   mlflow
     #   pandas
+    #   patsy
     #   scikit-learn
     #   scipy
     #   skops
+    #   statsmodels
 omegaconf==2.3.1
     # via
     #   dvc
@@ -313,16 +325,22 @@ packaging==26.3
     #   matplotlib
     #   mlflow-skinny
     #   mlflow-tracing
+    #   patsy
     #   pytest
     #   skops
+    #   statsmodels
 pandas==3.0.6
     # via
     #   equipoise (pyproject.toml)
+    #   formulaic
     #   mlflow
+    #   statsmodels
 pathspec==1.1.1
     # via
     #   dvc
     #   scmrepo
+patsy==1.0.3
+    # via statsmodels
 pillow==12.3.0
     # via matplotlib
 platformdirs==4.12.4
@@ -435,15 +453,19 @@ scikit-learn==1.9.1
 scipy==1.17.1 ; python_full_version < '3.12'
     # via
     #   equipoise (pyproject.toml)
+    #   formulaic
     #   mlflow
     #   scikit-learn
     #   skops
+    #   statsmodels
 scipy==1.18.1 ; python_full_version >= '3.12'
     # via
     #   equipoise (pyproject.toml)
+    #   formulaic
     #   mlflow
     #   scikit-learn
     #   skops
+    #   statsmodels
 scmrepo==3.6.2
     # via
     #   dvc
@@ -478,6 +500,8 @@ starlette==1.7.0
     # via
     #   fastapi
     #   mlflow-skinny
+statsmodels==0.15.0
+    # via equipoise (pyproject.toml)
 tabulate==0.10.0
     # via
     #   equipoise (pyproject.toml)
@@ -505,6 +529,7 @@ typing-extensions==4.16.0
     #   click-repl
     #   dulwich
     #   fastapi
+    #   formulaic
     #   graphene
     #   mlflow-skinny
     #   opentelemetry-api
@@ -554,6 +579,8 @@ werkzeug==3.1.9
     # via
     #   flask
     #   flask-cors
+wrapt==2.5.0
+    # via formulaic
 yarl==1.25.1
     # via aiohttp
 zc-lockfile==4.0

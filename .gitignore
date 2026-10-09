@@ -34,3 +34,10 @@ htmlcov/
 .ipynb_checkpoints/
 .DS_Store
 Thumbs.db
+
+# ---- Generated report outputs (regenerate with `python -m equipoise all` / `dvc repro`).
+# Real-data figures include patient-level points; the team decides what goes in the report.
+reports/figures/*
+reports/tables/*
+reports/synthetic/
+!reports/**/.gitkeep

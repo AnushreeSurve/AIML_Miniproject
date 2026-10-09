@@ -78,3 +78,293 @@ stages:
       hash: md5
       md5: 84bcabdae47f59d1a9c0ef1c6475af9b
       size: 7353
+  preprocess:
+    cmd: python -m equipoise preprocess
+    deps:
+    - path: data/protocolT_analysis.csv
+      hash: md5
+      md5: fd12418954eb3678560ba25ca86f7b3c
+      size: 165373
+    - path: data/splits.json
+      hash: md5
+      md5: 84bcabdae47f59d1a9c0ef1c6475af9b
+      size: 7353
+    - path: src/equipoise/pipeline.py
+      hash: md5
+      md5: f0b84800412c07660f00469a9419fad5
+      size: 1817
+    - path: src/equipoise/preprocess
+      hash: md5
+      md5: 3fc0730fb36cb30fad15916a3e1c58c0.dir
+      size: 92891
+      nfiles: 14
+    params:
+      config/default.yaml:
+        features:
+          continuous:
+          - X_age
+          - X_bmi
+          - X_sbp
+          - X_dbp
+          - X_diabetes_duration_yrs
+          - X_hba1c
+          - X_log_uacr
+          - X_va_letters
+          - X_fellow_va_letters
+          - X_iop
+          - X_dr_severity_rc
+          log_transform:
+          - X_hba1c
+          binary:
+          - X_female
+          - X_hispanic
+          - X_insulin
+          - X_smoker_current
+          - X_hypertension
+          - X_prior_mi
+          - X_cad
+          - X_prior_stroke
+          - X_renal_disease
+          - X_subretinal_fluid
+          - X_epiretinal_membrane
+          - X_pseudophakic
+          - X_prior_dme_trt
+          - X_prior_antivegf
+          - X_prior_focal_laser
+          - X_prior_prp
+          - X_va_below_69
+          nominal:
+          - X_race
+          - X_diabetes_type
+          - X_oct_machine
+          ordinal:
+            X_dr_severity_clinical:
+            - Microaneurysms only
+            - Mild/moderate NPDR
+            - Severe NPDR
+            - PDR and/or prior scatter
+          cst:
+            value: X_cst_um
+            machine: X_oct_machine
+        preprocess:
+          imputer: knn
+          knn_neighbors: 5
+          sparse_threshold: 0.0
+          cst_min_machine_n: 20
+          missing:
+            n_imputations: 20
+            mice_max_iter: 10
+            knn_neighbors: 5
+            impute_within_arm: true
+          outliers:
+            iqr_k: 1.5
+            isolation_contamination: 0.05
+            dbscan_min_samples: 10
+            dbscan_eps_quantile: 0.95
+          bands:
+            X_hba1c:
+              edges:
+              - 0
+              - 7.0
+              - 8.0
+              - 9.0
+              - 100
+              labels:
+              - <7
+              - 7-8
+              - 8-9
+              - '>=9'
+            X_va_letters:
+              edges:
+              - 0
+              - 54
+              - 68
+              - 100
+              labels:
+              - <=54 (20/80 or worse)
+              - 55-68 (20/63-20/50)
+              - '>=69 (20/40 or better)'
+            X_age:
+              edges:
+              - 0
+              - 50
+              - 60
+              - 70
+              - 120
+              labels:
+              - <50
+              - 50-59
+              - 60-69
+              - '>=70'
+            X_cst_um_harm:
+              edges:
+              - -100
+              - -0.5
+              - 0.5
+              - 100
+              labels:
+              - thin (z<-0.5)
+              - typical
+              - thick (z>0.5)
+        seed: 42
+    outs:
+    - path: data/derived/m1_outlier_flags.csv
+      hash: md5
+      md5: 6c43606d9e5fbfcc410afcedb8ca1b4e
+      size: 14287
+    - path: reports/figures/m1_cst_by_machine.png
+      hash: md5
+      md5: fb9aebab1237149830f20b495ba5f113
+      size: 87473
+    - path: reports/figures/m1_missing_strategies.png
+      hash: md5
+      md5: 7b2fac46dff249eb21fa7669f4683aaf
+      size: 78949
+    - path: reports/tables/m1_missing_strategies.csv
+      hash: md5
+      md5: 68de6367a15f075e5e9cee5bbe4cfc29
+      size: 1021
+  stats:
+    cmd: python -m equipoise stats
+    deps:
+    - path: data/protocolT_analysis.csv
+      hash: md5
+      md5: fd12418954eb3678560ba25ca86f7b3c
+      size: 165373
+    - path: data/splits.json
+      hash: md5
+      md5: 84bcabdae47f59d1a9c0ef1c6475af9b
+      size: 7353
+    - path: src/equipoise/preprocess/harmonize.py
+      hash: md5
+      md5: 06890a9f48ed82b713f3d3a01c49edd6
+      size: 3659
+    - path: src/equipoise/stats
+      hash: md5
+      md5: b5c46b372e9531126dde279594840aa4.dir
+      size: 91210
+      nfiles: 12
+    params:
+      config/default.yaml:
+        features:
+          continuous:
+          - X_age
+          - X_bmi
+          - X_sbp
+          - X_dbp
+          - X_diabetes_duration_yrs
+          - X_hba1c
+          - X_log_uacr
+          - X_va_letters
+          - X_fellow_va_letters
+          - X_iop
+          - X_dr_severity_rc
+          log_transform:
+          - X_hba1c
+          binary:
+          - X_female
+          - X_hispanic
+          - X_insulin
+          - X_smoker_current
+          - X_hypertension
+          - X_prior_mi
+          - X_cad
+          - X_prior_stroke
+          - X_renal_disease
+          - X_subretinal_fluid
+          - X_epiretinal_membrane
+          - X_pseudophakic
+          - X_prior_dme_trt
+          - X_prior_antivegf
+          - X_prior_focal_laser
+          - X_prior_prp
+          - X_va_below_69
+          nominal:
+          - X_race
+          - X_diabetes_type
+          - X_oct_machine
+          ordinal:
+            X_dr_severity_clinical:
+            - Microaneurysms only
+            - Mild/moderate NPDR
+            - Severe NPDR
+            - PDR and/or prior scatter
+          cst:
+            value: X_cst_um
+            machine: X_oct_machine
+        seed: 42
+        stats:
+          alpha: 0.05
+          skew_threshold: 1.0
+          yr1_population: M_has_wk52
+          yr2_population: M_has_wk104
+          regression_covariates:
+          - X_cst_um_harm
+          - X_age
+          - X_hba1c
+          - X_prior_antivegf
+          - X_insulin
+          correlation_features:
+          - X_age
+          - X_bmi
+          - X_sbp
+          - X_dbp
+          - X_diabetes_duration_yrs
+          - X_hba1c
+          - X_log_uacr
+          - X_va_letters
+          - X_fellow_va_letters
+          - X_iop
+          - X_dr_severity_rc
+          - X_cst_um
+          replication_tolerance_letters: 0.2
+          replication_targets:
+            mean_gain_wk52:
+              Aflibercept: 13.3
+              Bevacizumab: 9.4
+              Ranibizumab: 11.2
+            mean_gain_wk52_va_below_69:
+              Aflibercept: 19.1
+              Bevacizumab: 11.8
+              Ranibizumab: 14.2
+            mean_gain_wk52_va_69_plus:
+              Aflibercept: 7.8
+              Bevacizumab: 7.0
+              Ranibizumab: 8.3
+            median_inj_yr1:
+              Aflibercept: 9
+              Bevacizumab: 10
+              Ranibizumab: 10
+            laser_yr1_pct:
+              Aflibercept: 37
+              Bevacizumab: 56
+              Ranibizumab: 47
+            cst_change_wk52:
+              Aflibercept: -165
+              Bevacizumab: -98
+              Ranibizumab: -147
+            mean_gain_wk104:
+              Aflibercept: 12.9
+              Bevacizumab: 9.6
+              Ranibizumab: 12.2
+            median_inj_total:
+              Aflibercept: 15
+              Bevacizumab: 16
+              Ranibizumab: 15
+            laser_any_pct:
+              Aflibercept: 41
+              Bevacizumab: 64
+              Ranibizumab: 52
+    outs:
+    - path: reports/tables/m2_interaction_tests.csv
+      hash: md5
+      md5: ddb4a0a25881f08fc65dbe2f3c8efd01
+      size: 287
+    - path: reports/tables/m2_replication_check.csv
+      hash: md5
+      md5: 51464bd703f6c97fee212dd1c8da527d
+      size: 2001
+    - path: reports/tables/m2_table1.csv
+      hash: md5
+      md5: 938fab07f32296ce243ad32560e7b179
+      size: 5291
