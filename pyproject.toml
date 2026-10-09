@@ -22,7 +22,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0", "ruff>=0.5"]
+dev = ["pytest>=8.0", "ruff>=0.5", "dvc>=3.50"]
 automl = ["autogluon.tabular>=1.1"]
 cv = [
     "opencv-python-headless>=4.9",

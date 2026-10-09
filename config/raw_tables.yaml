@@ -1,0 +1,35 @@
+# Mapping from raw DRCR Protocol T text files to the normalized columns used by
+# scripts/build_protocolT_visits.py.
+#
+# EVERY null below must be filled by INSPECTING THE ACTUAL FILES (and the M0
+# script scripts/build_protocolT_table.py). Do not guess: the build script
+# refuses to run while any required entry is null.
+#
+# Normalized names: pt_id, eye, days_from_rand, visit_label, value columns.
+file_extension: null        # e.g. the suffix of the files in "Data Tables - Text files"
+delimiter: null             # field separator used by the DRCR text files
+encoding: null
+eye_codes:                  # raw codes for the study-eye column, mapped to the analysis table's study_eye
+  OD: null
+  OS: null
+visit_labels:               # raw visit codes for the visits used in cross-checks
+  baseline: null
+  wk52: null
+  wk104: null
+
+tables:
+  visit_info:
+    file: TVisitInfo
+    columns: {pt_id: null, days_from_rand: null, visit_label: null}
+  va:
+    file: TVAReVATest
+    columns: {pt_id: null, eye: null, days_from_rand: null, va_letters: null}
+  oct:
+    file: RCOCTGradingResult
+    columns: {pt_id: null, eye: null, days_from_rand: null, cst_um: null, oct_machine: null}
+  injections:
+    file: TIntraInj
+    columns: {pt_id: null, eye: null, days_from_rand: null}
+  laser:
+    file: TLaserTrt
+    columns: {pt_id: null, eye: null, days_from_rand: null}

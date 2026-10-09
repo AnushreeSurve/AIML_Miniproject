@@ -2,6 +2,8 @@
 data/*
 !data/synthetic/
 !data/synthetic/**
+# DVC pointer files (hash + size only, no data)
+!data/*.dvc
 
 # ---- Generated artefacts
 models/*

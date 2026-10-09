@@ -1,0 +1,80 @@
+schema: '2.0'
+stages:
+  synthetic:
+    cmd: python scripts/make_synthetic_data.py
+    deps:
+    - path: config/synthetic.yaml
+      hash: md5
+      md5: 07686a4eb98e680f8931167540bdfdd4
+      size: 5348
+    - path: scripts/make_synthetic_data.py
+      hash: md5
+      md5: db5ea7e16f84f4210566d3ef7d1ad639
+      size: 3182
+    - path: src/equipoise/data/schema.py
+      hash: md5
+      md5: 10093a79a8a7aea59d6045a6e303e5ae
+      size: 15698
+    - path: src/equipoise/data/synthetic.py
+      hash: md5
+      md5: ee3d21dc9c81baef7853ee5f8c124f60
+      size: 15017
+    outs:
+    - path: data/synthetic/protocolT_analysis.csv
+      hash: md5
+      md5: 1701ea3b18d99105f1ee4d78bd952e8e
+      size: 139043
+    - path: data/synthetic/protocolT_truth.csv
+      hash: md5
+      md5: 83865cf9005780ac58d1366904c0d79c
+      size: 20537
+    - path: data/synthetic/protocolT_visits.csv
+      hash: md5
+      md5: a09231f02d3ee81e6a5de9205f1571be
+      size: 729793
+  split_synthetic:
+    cmd: python -m equipoise split --synthetic
+    deps:
+    - path: data/synthetic/protocolT_analysis.csv
+      hash: md5
+      md5: 1701ea3b18d99105f1ee4d78bd952e8e
+      size: 139043
+    - path: src/equipoise/data/splits.py
+      hash: md5
+      md5: 6110fea7b7d01709129089e4e551d82a
+      size: 5794
+    params:
+      config/default.yaml:
+        seed: 42
+        split:
+          test_fraction: 0.2
+          n_folds: 5
+          stratify_by: treatment
+    outs:
+    - path: data/synthetic/splits.json
+      hash: md5
+      md5: 2b0ce6cfaa3877db9a166bf916f5074f
+      size: 7325
+  split:
+    cmd: python -m equipoise split
+    deps:
+    - path: data/protocolT_analysis.csv
+      hash: md5
+      md5: fd12418954eb3678560ba25ca86f7b3c
+      size: 165373
+    - path: src/equipoise/data/splits.py
+      hash: md5
+      md5: 6110fea7b7d01709129089e4e551d82a
+      size: 5794
+    params:
+      config/default.yaml:
+        seed: 42
+        split:
+          test_fraction: 0.2
+          n_folds: 5
+          stratify_by: treatment
+    outs:
+    - path: data/splits.json
+      hash: md5
+      md5: 84bcabdae47f59d1a9c0ef1c6475af9b
+      size: 7353

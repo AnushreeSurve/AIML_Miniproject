@@ -1,0 +1,2 @@
+# Keep committed synthetic data byte-identical on every OS (its hash is the data version).
+data/synthetic/** -text

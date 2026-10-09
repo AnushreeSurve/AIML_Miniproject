@@ -75,6 +75,19 @@ def run_all(synthetic: bool = SyntheticOpt) -> None:
 
 
 @app.command()
+def split(synthetic: bool = SyntheticOpt) -> None:
+    """Draw the fixed train/test split and CV folds and save them to splits.json."""
+    from equipoise.data.splits import create_and_save, load_splits
+
+    seed_everything(load_config()["seed"])
+    path = create_and_save(synthetic)
+    s = load_splits(synthetic)
+    typer.echo(
+        f"wrote {path}: {len(s.train_ids)} train / {len(s.test_ids)} test, {s.n_folds} folds"
+    )
+
+
+@app.command()
 def validate(synthetic: bool = SyntheticOpt) -> None:
     """Validate the analysis (and visit, if present) table against the schema."""
     from equipoise.data.load import load_analysis, load_visits, visits_path

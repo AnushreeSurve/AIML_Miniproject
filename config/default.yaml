@@ -33,6 +33,16 @@ trial:                                # facts the real data must match (checked 
   n_missing_wk52: 44
   va_below_69_cutoff: 68              # X_va_below_69 = 1  <=>  X_va_letters <= 68 (20/50 or worse)
 
+visits:                               # visit table (scripts/build_protocolT_visits.py)
+  baseline_label: baseline
+  wk52_label: wk52
+  wk104_label: wk104
+  year1_end_day: 364                  # year 1 = visits before the week-52 visit (this day if none)
+  # PROVISIONAL windows - confirm against the Protocol T visit windows (Protocol PDF):
+  oct_match_window_days: 14           # an OCT grading attaches to the nearest visit within +/- 14 d
+  event_match_window_days: 3          # an injection / laser attaches to the nearest visit within +/- 3 d
+  crosscheck_tolerance_letters: 0.5   # visit-derived vs analysis-table week-52 change
+
 tracking:
   mlflow_tracking_uri: mlruns         # local file store, relative to the repository root
   experiment_prefix: equipoise

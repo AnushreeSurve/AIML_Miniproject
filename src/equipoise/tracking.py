@@ -10,6 +10,7 @@ run, so the report and the MLflow UI always show the same artefacts.
 from __future__ import annotations
 
 import hashlib
+import os
 import subprocess
 from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
@@ -19,6 +20,7 @@ from typing import Any
 import matplotlib
 
 matplotlib.use("Agg")  # headless: CI, Docker, Windows without a display
+os.environ.setdefault("MLFLOW_DISABLE_AGENT_HINT", "1")
 
 import mlflow  # noqa: E402
 import pandas as pd  # noqa: E402

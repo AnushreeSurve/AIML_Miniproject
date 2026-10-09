@@ -13,7 +13,7 @@ college AIML mini-project and a **research prototype, not for clinical use**.
   5. Then **stop and wait** for "continue".
 - **Raw DRCR data: ask, don't guess.** Inspect the actual files and `scripts/build_protocolT_table.py` for column names. If something is ambiguous, check the CRFs / Protocol PDF, otherwise ask.
 - **Never push to GitHub** unless the team explicitly allows it. Never delete files outside the repo.
-- **Never commit anything under `data/`** except `data/synthetic/`. Raw and derived DRCR data must not be redistributed.
+- **Never commit anything under `data/`** except `data/synthetic/` and DVC pointer files (`data/*.dvc`, which hold only a hash and size). Raw and derived DRCR data must not be redistributed.
 
 ## Scientific integrity (non-negotiable)
 
@@ -66,3 +66,11 @@ college AIML mini-project and a **research prototype, not for clinical use**.
 - **MLflow store.** `mlruns/mlflow.db` (SQLite; MLflow 3 rejects the bare file store) with artifacts under `mlruns/artifacts/`. View it with `mlflow ui --backend-store-uri sqlite:///mlruns/mlflow.db`.
 - **Dependencies.** Keep core lean; heavy pieces go in extras `[automl]` / `[cv]`. Pins are in `requirements*.txt`, generated with `uv pip compile pyproject.toml --universal --python-version 3.11` (add `--extra dev` for `requirements-dev.txt`).
 - **Synthetic data.** `python scripts/make_synthetic_data.py` regenerates `data/synthetic/` deterministically from `config/synthetic.yaml`. It has a planted effect: aflibercept helps more when `X_va_below_69 = 1`, and the truth is in `protocolT_truth.csv`. Tests and CI use only synthetic data. Never report synthetic numbers as results.
+
+## Data pipeline (DVC)
+
+- `dvc.yaml` holds the stages; `dvc repro` runs them. The cache is local, with no remote.
+- `data/protocolT_analysis.csv` is tracked by `dvc add` until the M0 build script and `data/raw/` are in the repo.
+- Then switch to the commented `build_analysis` / `build_visits` stages in `dvc.yaml`.
+- `data/splits.json` (real) and `data/synthetic/splits.json` hold the fixed test split and CV folds (`python -m equipoise split [--synthetic]`). Load them with `equipoise.data.splits.load_splits`. Never redraw splits ad hoc.
+- `scripts/build_protocolT_visits.py` reads raw column names only from `config/raw_tables.yaml`, which must be filled by inspecting the files. Study eye comes from the M0 table's `study_eye`.

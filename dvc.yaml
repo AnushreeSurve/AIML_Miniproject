@@ -1,0 +1,56 @@
+# DVC pipeline. Local cache only (no remote configured).
+# Later phases append their stages (preprocess, stats, ... report-assets).
+#
+# The real-data build stages need the DRCR download under data/raw/ and the
+# M0 script scripts/build_protocolT_table.py; enable them once both exist:
+#
+#   build_analysis:
+#     cmd: python scripts/build_protocolT_table.py "data/raw/Data Tables - Text files" data/protocolT_analysis.csv
+#     deps: [scripts/build_protocolT_table.py, data/raw]
+#     outs: [data/protocolT_analysis.csv]
+#   build_visits:
+#     cmd: python scripts/build_protocolT_visits.py "data/raw/Data Tables - Text files" data/protocolT_visits.csv
+#     deps: [scripts/build_protocolT_visits.py, src/equipoise/data/visits.py, config/raw_tables.yaml,
+#            data/raw, data/protocolT_analysis.csv]
+#     params: [config/default.yaml: [visits]]
+#     outs: [data/protocolT_visits.csv]
+#
+# Until then data/protocolT_analysis.csv is tracked with `dvc add`
+# (data/protocolT_analysis.csv.dvc).
+
+stages:
+  synthetic:
+    cmd: python scripts/make_synthetic_data.py
+    deps:
+      - scripts/make_synthetic_data.py
+      - src/equipoise/data/synthetic.py
+      - src/equipoise/data/schema.py
+      - config/synthetic.yaml
+    outs:                      # committed to git (tests/CI), so not cached by DVC
+      - data/synthetic/protocolT_analysis.csv: {cache: false}
+      - data/synthetic/protocolT_visits.csv: {cache: false}
+      - data/synthetic/protocolT_truth.csv: {cache: false}
+
+  split_synthetic:
+    cmd: python -m equipoise split --synthetic
+    deps:
+      - src/equipoise/data/splits.py
+      - data/synthetic/protocolT_analysis.csv
+    params:
+      - config/default.yaml:
+          - seed
+          - split
+    outs:
+      - data/synthetic/splits.json: {cache: false}
+
+  split:
+    cmd: python -m equipoise split
+    deps:
+      - src/equipoise/data/splits.py
+      - data/protocolT_analysis.csv
+    params:
+      - config/default.yaml:
+          - seed
+          - split
+    outs:
+      - data/splits.json

@@ -1,0 +1,5 @@
+outs:
+- md5: fd12418954eb3678560ba25ca86f7b3c
+  size: 165373
+  hash: md5
+  path: protocolT_analysis.csv
