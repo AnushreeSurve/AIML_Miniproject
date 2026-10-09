@@ -53,6 +53,11 @@ def fast_config(tmp_path, monkeypatch):
     d["paths"]["synthetic_reports_dir"] = str(tmp_path / "reports")
     d["paths"]["splits_json"] = str(tmp_path / "splits.json")
     d["tracking"]["mlflow_tracking_uri"] = str(tmp_path / "mlruns")
+    for group in ("regression", "classification", "count"):  # one grid point per model
+        for name, grid in d["supervised"][group].items():
+            d["supervised"][group][name] = {k: v[:1] for k, v in grid.items()}
+    d["supervised"]["knn_timing"]["repeats"] = 2
+    d["represent"]["k_range"] = [2, 3]
     (cdir / "default.yaml").write_text(yaml.safe_dump(d))
     monkeypatch.setattr(config_mod, "CONFIG_DIR", cdir)
     config_mod._load_cached.cache_clear()

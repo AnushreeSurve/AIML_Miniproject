@@ -96,3 +96,42 @@ stages:
           cache: false
       - reports/tables/m2_interaction_tests.csv:
           cache: false
+
+  represent:
+    cmd: python -m equipoise represent
+    deps:
+      - src/equipoise/represent
+      - src/equipoise/preprocess
+      - data/protocolT_analysis.csv
+      - data/splits.json
+    params:
+      - config/default.yaml:
+          - seed
+          - represent
+          - preprocess.bands
+    outs:
+      - reports/tables/m3_cluster_effects.csv:
+          cache: false
+      - reports/tables/m3_association_rules.csv:
+          cache: false
+
+  supervised:
+    cmd: python -m equipoise supervised
+    deps:
+      - src/equipoise/supervised
+      - src/equipoise/preprocess
+      - data/protocolT_analysis.csv
+      - data/splits.json
+    params:
+      - config/default.yaml:
+          - seed
+          - supervised
+          - features
+          - preprocess
+    outs:
+      - reports/tables/m5_regression_comparison.csv:
+          cache: false
+      - reports/tables/m5_classification_summary.csv:
+          cache: false
+      - reports/tables/m5_count_injections_yr1.csv:
+          cache: false

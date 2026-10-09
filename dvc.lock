@@ -241,9 +241,9 @@ stages:
       size: 3659
     - path: src/equipoise/stats
       hash: md5
-      md5: b5c46b372e9531126dde279594840aa4.dir
-      size: 91210
-      nfiles: 12
+      md5: e3cdcee8bbcb3ef9771ffde061af6fc6.dir
+      size: 95271
+      nfiles: 14
     params:
       config/default.yaml:
         features:
@@ -368,3 +368,371 @@ stages:
       hash: md5
       md5: 938fab07f32296ce243ad32560e7b179
       size: 5291
+  represent:
+    cmd: python -m equipoise represent
+    deps:
+    - path: data/protocolT_analysis.csv
+      hash: md5
+      md5: fd12418954eb3678560ba25ca86f7b3c
+      size: 165373
+    - path: data/splits.json
+      hash: md5
+      md5: 84bcabdae47f59d1a9c0ef1c6475af9b
+      size: 7353
+    - path: src/equipoise/preprocess
+      hash: md5
+      md5: 3fc0730fb36cb30fad15916a3e1c58c0.dir
+      size: 92891
+      nfiles: 14
+    - path: src/equipoise/represent
+      hash: md5
+      md5: 86755353fa6fdbf607946be705215e73.dir
+      size: 50219
+      nfiles: 10
+    params:
+      config/default.yaml:
+        preprocess.bands:
+          X_hba1c:
+            edges:
+            - 0
+            - 7.0
+            - 8.0
+            - 9.0
+            - 100
+            labels:
+            - <7
+            - 7-8
+            - 8-9
+            - '>=9'
+          X_va_letters:
+            edges:
+            - 0
+            - 54
+            - 68
+            - 100
+            labels:
+            - <=54 (20/80 or worse)
+            - 55-68 (20/63-20/50)
+            - '>=69 (20/40 or better)'
+          X_age:
+            edges:
+            - 0
+            - 50
+            - 60
+            - 70
+            - 120
+            labels:
+            - <50
+            - 50-59
+            - 60-69
+            - '>=70'
+          X_cst_um_harm:
+            edges:
+            - -100
+            - -0.5
+            - 0.5
+            - 100
+            labels:
+            - thin (z<-0.5)
+            - typical
+            - thick (z>0.5)
+        represent:
+          n_components: 10
+          k_range:
+          - 2
+          - 3
+          - 4
+          - 5
+          - 6
+          - 7
+          - 8
+          kmeans_n_init: 20
+          dbscan_min_samples: 10
+          dbscan_eps_quantile: 0.9
+          min_arm_n_per_cluster: 10
+          apriori:
+            min_support: 0.1
+            min_confidence: 0.3
+            max_len: 3
+            top_n: 10
+            binary_items:
+            - X_female
+            - X_insulin
+            - X_hypertension
+            - X_prior_dme_trt
+            - X_prior_antivegf
+            - X_prior_focal_laser
+            - X_subretinal_fluid
+            - X_epiretinal_membrane
+            - X_pseudophakic
+            - X_renal_disease
+        seed: 42
+    outs:
+    - path: reports/tables/m3_association_rules.csv
+      hash: md5
+      md5: 042b7a71e6d8dd97c2ee73ed63f6b6ee
+      size: 4721
+    - path: reports/tables/m3_cluster_effects.csv
+      hash: md5
+      md5: c7e34d4ca12a2f58a55f7bb8c9aa5bea
+      size: 2285
+  supervised:
+    cmd: python -m equipoise supervised
+    deps:
+    - path: data/protocolT_analysis.csv
+      hash: md5
+      md5: fd12418954eb3678560ba25ca86f7b3c
+      size: 165373
+    - path: data/splits.json
+      hash: md5
+      md5: 84bcabdae47f59d1a9c0ef1c6475af9b
+      size: 7353
+    - path: src/equipoise/preprocess
+      hash: md5
+      md5: 3fc0730fb36cb30fad15916a3e1c58c0.dir
+      size: 92891
+      nfiles: 14
+    - path: src/equipoise/supervised
+      hash: md5
+      md5: 5527ab2bf52a39f29a6af77865ed305d.dir
+      size: 95195
+      nfiles: 12
+    params:
+      config/default.yaml:
+        features:
+          continuous:
+          - X_age
+          - X_bmi
+          - X_sbp
+          - X_dbp
+          - X_diabetes_duration_yrs
+          - X_hba1c
+          - X_log_uacr
+          - X_va_letters
+          - X_fellow_va_letters
+          - X_iop
+          - X_dr_severity_rc
+          log_transform:
+          - X_hba1c
+          binary:
+          - X_female
+          - X_hispanic
+          - X_insulin
+          - X_smoker_current
+          - X_hypertension
+          - X_prior_mi
+          - X_cad
+          - X_prior_stroke
+          - X_renal_disease
+          - X_subretinal_fluid
+          - X_epiretinal_membrane
+          - X_pseudophakic
+          - X_prior_dme_trt
+          - X_prior_antivegf
+          - X_prior_focal_laser
+          - X_prior_prp
+          - X_va_below_69
+          nominal:
+          - X_race
+          - X_diabetes_type
+          - X_oct_machine
+          ordinal:
+            X_dr_severity_clinical:
+            - Microaneurysms only
+            - Mild/moderate NPDR
+            - Severe NPDR
+            - PDR and/or prior scatter
+          cst:
+            value: X_cst_um
+            machine: X_oct_machine
+        preprocess:
+          imputer: knn
+          knn_neighbors: 5
+          sparse_threshold: 0.0
+          cst_min_machine_n: 20
+          missing:
+            n_imputations: 20
+            mice_max_iter: 10
+            knn_neighbors: 5
+            impute_within_arm: true
+          outliers:
+            iqr_k: 1.5
+            isolation_contamination: 0.05
+            dbscan_min_samples: 10
+            dbscan_eps_quantile: 0.95
+          bands:
+            X_hba1c:
+              edges:
+              - 0
+              - 7.0
+              - 8.0
+              - 9.0
+              - 100
+              labels:
+              - <7
+              - 7-8
+              - 8-9
+              - '>=9'
+            X_va_letters:
+              edges:
+              - 0
+              - 54
+              - 68
+              - 100
+              labels:
+              - <=54 (20/80 or worse)
+              - 55-68 (20/63-20/50)
+              - '>=69 (20/40 or better)'
+            X_age:
+              edges:
+              - 0
+              - 50
+              - 60
+              - 70
+              - 120
+              labels:
+              - <50
+              - 50-59
+              - 60-69
+              - '>=70'
+            X_cst_um_harm:
+              edges:
+              - -100
+              - -0.5
+              - 0.5
+              - 100
+              labels:
+              - thin (z<-0.5)
+              - typical
+              - thick (z>0.5)
+        seed: 42
+        supervised:
+          responder_target: gain_ge_15
+          laser_population: M_has_wk52
+          count_population: M_has_wk52
+          cv_scoring_regression: neg_root_mean_squared_error
+          cv_scoring_classification: roc_auc
+          regression:
+            ols: {}
+            ridge:
+              alpha:
+              - 0.1
+              - 1.0
+              - 10.0
+              - 100.0
+            lasso:
+              alpha:
+              - 0.01
+              - 0.05
+              - 0.1
+              - 0.5
+              - 1.0
+            knn:
+              n_neighbors:
+              - 5
+              - 15
+              - 30
+              - 50
+              weights:
+              - uniform
+              - distance
+            decision_tree:
+              max_depth:
+              - 2
+              - 3
+              - 4
+              - 6
+              min_samples_leaf:
+              - 10
+              - 20
+              - 40
+            random_forest:
+              n_estimators:
+              - 300
+              max_depth:
+              - 3
+              - 6
+              - 
+              min_samples_leaf:
+              - 5
+              - 20
+            gradient_boosting:
+              n_estimators:
+              - 100
+              - 300
+              learning_rate:
+              - 0.02
+              - 0.05
+              max_depth:
+              - 2
+              - 3
+          classification:
+            logistic:
+              C:
+              - 0.01
+              - 0.1
+              - 1.0
+              - 10.0
+            knn:
+              n_neighbors:
+              - 5
+              - 15
+              - 30
+              - 50
+            decision_tree:
+              max_depth:
+              - 2
+              - 3
+              - 4
+              - 6
+              min_samples_leaf:
+              - 10
+              - 20
+              - 40
+            gaussian_nb: {}
+            bernoulli_nb:
+              alpha:
+              - 0.5
+              - 1.0
+              - 2.0
+          irls:
+            max_iter: 50
+            tol: 1e-08
+            l2: 0.0001
+          knn_timing:
+            algorithms:
+            - kd_tree
+            - ball_tree
+            - brute
+            n_neighbors: 15
+            repeats: 20
+          count:
+            poisson_glm:
+              alpha:
+              - 0.0001
+              - 0.01
+              - 0.1
+              - 1.0
+            gradient_boosting_poisson:
+              max_iter:
+              - 100
+              - 300
+              learning_rate:
+              - 0.03
+              - 0.1
+              max_depth:
+              - 2
+              - 3
+    outs:
+    - path: reports/tables/m5_classification_summary.csv
+      hash: md5
+      md5: 9b7ae27581abbdfd8395653a94098d83
+      size: 2389
+    - path: reports/tables/m5_count_injections_yr1.csv
+      hash: md5
+      md5: 656f513464a18033e13c0c78c60faa5a
+      size: 567
+    - path: reports/tables/m5_regression_comparison.csv
+      hash: md5
+      md5: 07b2259c1c1b94101e0a6441eb70ba80
+      size: 1470

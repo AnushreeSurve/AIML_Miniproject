@@ -231,3 +231,11 @@ class Reporter:
         plt.close(fig)
         self.written.append(out)
         return out
+
+
+def child_run(name: str, params: Mapping[str, Any], metrics: Mapping[str, float]) -> None:
+    """Log one model as a nested MLflow run under the active stage run."""
+    with mlflow.start_run(run_name=name, nested=True):
+        mlflow.set_tag("model", name)
+        log_params(params)
+        log_metrics(metrics)

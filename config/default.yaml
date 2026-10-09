@@ -101,6 +101,54 @@ stats:
     median_inj_total: {Aflibercept: 15, Bevacizumab: 16, Ranibizumab: 15}
     laser_any_pct: {Aflibercept: 41, Bevacizumab: 64, Ranibizumab: 52}
 
+represent:                            # M3 (exploratory; training set only)
+  n_components: 10                    # PCA components kept for the scree plot
+  k_range: [2, 3, 4, 5, 6, 7, 8]      # k-means / Ward candidates; k chosen by best silhouette
+  kmeans_n_init: 20
+  dbscan_min_samples: 10
+  dbscan_eps_quantile: 0.90
+  min_arm_n_per_cluster: 10           # clusters with fewer patients per arm get no effect estimate
+  apriori:
+    min_support: 0.10
+    min_confidence: 0.30
+    max_len: 3
+    top_n: 10
+    binary_items: [X_female, X_insulin, X_hypertension, X_prior_dme_trt, X_prior_antivegf,
+                   X_prior_focal_laser, X_subretinal_fluid, X_epiretinal_membrane,
+                   X_pseudophakic, X_renal_disease]
+
+supervised:                           # M5 outcome models (tuned by CV on the training 80 %)
+  responder_target: gain_ge_15        # derived: Y_va_change_wk52 >= responder_threshold_letters
+  laser_population: M_has_wk52        # Y_laser_yr1 modelled on patients with a week-52 visit
+  count_population: M_has_wk52        # Y_n_inj_yr1 likewise
+  cv_scoring_regression: neg_root_mean_squared_error
+  cv_scoring_classification: roc_auc
+  regression:
+    ols: {}
+    ridge: {alpha: [0.1, 1.0, 10.0, 100.0]}
+    lasso: {alpha: [0.01, 0.05, 0.1, 0.5, 1.0]}
+    knn: {n_neighbors: [5, 15, 30, 50], weights: [uniform, distance]}
+    decision_tree: {max_depth: [2, 3, 4, 6], min_samples_leaf: [10, 20, 40]}
+    random_forest: {n_estimators: [300], max_depth: [3, 6, null], min_samples_leaf: [5, 20]}
+    gradient_boosting: {n_estimators: [100, 300], learning_rate: [0.02, 0.05], max_depth: [2, 3]}
+  classification:
+    logistic: {C: [0.01, 0.1, 1.0, 10.0]}
+    knn: {n_neighbors: [5, 15, 30, 50]}
+    decision_tree: {max_depth: [2, 3, 4, 6], min_samples_leaf: [10, 20, 40]}
+    gaussian_nb: {}
+    bernoulli_nb: {alpha: [0.5, 1.0, 2.0]}
+  irls:
+    max_iter: 50
+    tol: 1.0e-8
+    l2: 1.0e-4                        # tiny ridge so the full one-hot design stays invertible
+  knn_timing:
+    algorithms: [kd_tree, ball_tree, brute]
+    n_neighbors: 15
+    repeats: 20
+  count:
+    poisson_glm: {alpha: [0.0001, 0.01, 0.1, 1.0]}
+    gradient_boosting_poisson: {max_iter: [100, 300], learning_rate: [0.03, 0.1], max_depth: [2, 3]}
+
 tracking:
   mlflow_tracking_uri: mlruns         # local file store, relative to the repository root
   experiment_prefix: equipoise
